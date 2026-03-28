@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | EduMitra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#06b6d4', // Cyan
+                        secondary: '#3b82f6', // Blue
+                        dark: '#020617',
+                        card: 'rgba(30, 41, 59, 0.7)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+    </style>
+</head>
+<body class="bg-dark text-slate-100 min-h-screen">
+    <nav class="glass sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <i data-lucide="sparkles" class="text-white"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight">EduMitra <span class="text-primary text-sm">Student</span></span>
+        </div>
+        <div class="flex items-center space-x-6">
+            <span class="text-sm text-slate-400">Welcome, <span id="studentName" class="text-white font-medium">Srimanyu</span></span>
+            <button onclick="API.logout()" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="log-out"></i></button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Left: Performance Snapshot -->
+            <div class="md:col-span-2 space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass p-6 rounded-2xl glow-cyan">
+                        <p class="text-slate-400 text-sm mb-4">Current Average</p>
+                        <div class="flex items-end justify-between">
+                            <h2 class="text-5xl font-extrabold" id="avgMarks">0%</h2>
+                            <span class="text-green-400 flex items-center text-sm font-bold bg-green-400/10 px-3 py-1 rounded-full">
+                                <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i> Stabilizing
+                            </span>
+                        </div>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-primary/30">
+                        <p class="text-slate-400 text-sm mb-4">Predicted Final Grade</p>
+                        <div class="flex items-end justify-between">
+                            <h2 class="text-5xl font-extrabold text-primary" id="predGrade">0.0</h2>
+                            <span class="text-primary/70 text-sm uppercase font-bold tracking-widest">Target Path</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Trend Chart -->
+                <div class="glass p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold mb-6 flex items-center">
+                        <i data-lucide="line-chart" class="mr-2 text-primary"></i> Academic Performance Trend
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Insights & Momentum -->
+            <div class="space-y-8">
+                <div class="glass p-6 rounded-2xl">
+                    <h3 class="text-lg font-bold mb-4">Academic Momentum</h3>
+                    <div class="relative pt-1">
+                        <div class="overflow-hidden h-4 mb-4 text-xs flex rounded-full bg-slate-800">
+                            <div id="momentumBar" style="width:0%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary transition-all duration-1000"></div>
+                        </div>
+                        <p class="text-sm text-slate-400" id="momentumStatus">Calculating your growth...</p>
+                    </div>
+                </div>
+
+                <div class="glass p-6 rounded-2xl">
+                    <h3 class="text-lg font-bold mb-4">AI Explainer</h3>
+                    <div class="space-y-4" id="explanationList">
+                        <!-- AI Insights Injected Here -->
+                        <p class="text-slate-400 text-sm animate-pulse">Analyzing your study patterns...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Chatbot Widget -->
+    <div class="fixed bottom-8 right-8 z-50">
+        <button id="chatToggle" class="w-16 h-16 bg-primary rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 glow-cyan">
+            <i data-lucide="message-square" class="text-white w-8 h-8"></i>
+        </button>
+        
+        <div id="chatBox" class="hidden absolute bottom-20 right-0 w-96 glass rounded-2xl shadow-2xl flex flex-col overflow-hidden border-primary/20">
+            <div class="bg-primary p-4 flex justify-between items-center">
+                <h4 class="text-white font-bold">EduMitra AI Tutor</h4>
+                <button id="closeChat" class="text-white/70 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="chatMessages" class="flex-1 p-4 h-80 overflow-y-auto space-y-4 text-sm scroll-smooth">
+                <div class="bg-slate-800/50 p-3 rounded-lg max-w-[80%]">
+                    Hello! I'm your performance tutor. Based on your current momentum, I have some study tips for you. Ask away!
+                </div>
+            </div>
+            <div class="p-4 border-t border-white/5 bg-slate-900/50">
+                <form id="chatForm" class="flex space-x-2">
+                    <input type="text" id="chatInput" placeholder="Ask for tips..." class="flex-1 bg-slate-800 border-none rounded-lg px-3 py-2 text-white outline-none focus:ring-1 focus:ring-primary">
+                    <button type="submit" class="bg-primary p-2 rounded-lg text-white"><i data-lucide="send" class="w-5 h-5"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // Chat Toggle
+        const chatToggle = document.getElementById('chatToggle');
+        const chatBox = document.getElementById('chatBox');
+        chatToggle.onclick = () => chatBox.classList.toggle('hidden');
+        document.getElementById('closeChat').onclick = () => chatBox.classList.add('hidden');
+
+        let myRollNo = 'STU1000'; // Demo Roll No
+
+        async function initDashboard() {
+            // In a real app, get roll_no from token
+            const student = await API.get(`/students/${myRollNo}`);
+            
+            document.getElementById('studentName').innerText = student.name;
+            document.getElementById('avgMarks').innerText = `${student.average.toFixed(1)}%`;
+            document.getElementById('predGrade').innerText = student.predicted_grade.toFixed(1);
+            
+            const momentumPct = Math.min(Math.max((student.momentum + 10) * 5, 0), 100);
+            document.getElementById('momentumBar').style.width = `${momentumPct}%`;
+            document.getElementById('momentumStatus').innerText = 
+                student.momentum > 0 ? `Your growth is increasing by ${student.momentum.toFixed(1)} pts!` : 
+                `Caution: Your momentum is declining by ${Math.abs(student.momentum).toFixed(1)} pts.`;
+
+            // Chart
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Projected'],
+                    datasets: [{
+                        label: 'Marks %',
+                        data: [student.sem1_marks, student.sem2_marks, student.sem3_marks, student.sem4_marks, student.predicted_grade],
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#06b6d4'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false } },
+                        x: { grid: { display: false }, border: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Chat Logic
+        document.getElementById('chatForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const query = input.value;
+            if (!query) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML += `<div class="bg-primary/20 p-3 rounded-lg max-w-[80%] self-end ml-auto">${query}</div>`;
+            input.value = '';
+
+            const res = await API.post('/chatbot', { query, roll_no: myRollNo });
+            chatMessages.innerHTML += `<div class="bg-slate-800/50 p-3 rounded-lg max-w-[80%] text-primary font-medium">${res.response}</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+        initDashboard();
+    </script>
+</body>
+</html>

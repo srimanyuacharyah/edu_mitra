@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | EduMitra Platinum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: { primary: '#06b6d4', dark: '#020617' }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        body { background: radial-gradient(circle at bottom right, #083344, #020617); min-height: 100vh; }
+    </style>
+</head>
+<body class="flex items-center justify-center p-6 relative overflow-hidden">
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-cyan-500/10 blur-3xl rounded-full"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-cyan-500/10 blur-3xl rounded-full"></div>
+
+    <div class="max-w-md w-full glass p-10 rounded-3xl shadow-2xl relative z-10 border-cyan-500/20">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-white mb-2">Student Portal</h1>
+            <p class="text-cyan-300/70">Connect to your academic journey.</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Roll Number (USN)</label>
+                <input type="text" id="roll_no" required class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all uppercase" placeholder="STU1000">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Access PIN</label>
+                <input type="password" id="password" required class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="w-full bg-primary hover:bg-cyan-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-500/20 transition-all transform hover:-translate-y-1 active:scale-95">
+                Unlock My Portal
+            </button>
+        </form>
+
+        <div class="mt-8 text-center text-sm">
+            <span class="text-slate-400">Need help?</span>
+            <a href="#" class="text-primary font-semibold hover:underline ml-1">Contact Teacher</a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const roll_no = document.getElementById('roll_no').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Note: student login uses query params in current main.py
+            const res = await API.postStudentLogin(roll_no, password);
+            if (res.access_token) {
+                localStorage.setItem('token', res.access_token);
+                localStorage.setItem('role', 'Student');
+                localStorage.setItem('roll_no', roll_no);
+                window.location.href = 'student-dashboard.html';
+            } else {
+                alert('Login failed: ' + (res.detail || 'check USN'));
+            }
+        };
+    </script>
+</body>
+</html>

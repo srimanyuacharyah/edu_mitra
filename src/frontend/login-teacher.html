@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Access | EduMitra Platinum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: { primary: '#6366f1', dark: '#020617' }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        body { background: radial-gradient(circle at top left, #1e1b4b, #020617); min-height: 100vh; }
+    </style>
+</head>
+<body class="flex items-center justify-center p-6 relative overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/10 blur-3xl rounded-full"></div>
+    <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500/10 blur-3xl rounded-full"></div>
+
+    <div class="max-w-md w-full glass p-10 rounded-3xl shadow-2xl relative z-10">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-white mb-2">Teacher Login</h1>
+            <p class="text-indigo-300/70">Access monitoring analytics.</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Institutional Email</label>
+                <input type="email" id="email" required class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="teacher@edu.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                <input type="password" id="password" required class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="w-full bg-primary hover:bg-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all transform hover:-translate-y-1 active:scale-95">
+                Monitor Performance
+            </button>
+        </form>
+
+        <div class="mt-8 text-center text-sm">
+            <span class="text-slate-400">New teacher?</span>
+            <a href="signup-teacher.html" class="text-primary font-semibold hover:underline ml-1">Create an account</a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const res = await API.post('/login/teacher', { email, password, full_name: '', role: 'Teacher' });
+            if (res.access_token) {
+                localStorage.setItem('token', res.access_token);
+                localStorage.setItem('role', 'Teacher');
+                window.location.href = 'teacher-dashboard.html';
+            } else {
+                alert('Login failed: ' + (res.detail || 'check credentials'));
+            }
+        };
+    </script>
+</body>
+</html>

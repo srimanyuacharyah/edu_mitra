@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Success Portal | EduMitra Platinum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: { primary: '#06b6d4', secondary: '#6366f1', dark: '#020617', card: '#080c14' }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .hero-gradient { background: radial-gradient(circle at top right, rgba(6, 182, 212, 0.1), transparent 60%); }
+        .glow-cyan { text-shadow: 0 0 15px rgba(6, 182, 212, 0.5); }
+        .glow-indigo { text-shadow: 0 0 15px rgba(99, 102, 241, 0.5); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-dark text-slate-300 font-sans min-h-screen hero-gradient selection:bg-primary/30">
+    
+    <!-- Header -->
+    <nav class="glass sticky top-0 z-50 px-8 py-5 flex justify-between items-center border-b border-white/5">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+                <i data-lucide="zap" class="text-primary fill-primary/20 w-5 h-5 pointer-events-none"></i>
+            </div>
+            <h1 class="text-xl font-black italic tracking-tighter uppercase leading-none">Edu<span class="text-primary italic">Mitra</span> <span class="text-primary/70 text-xs font-bold tracking-widest">(User Mode)</span></h1>
+        </div>
+        <div class="flex items-center space-x-8">
+            <div class="hidden md:flex flex-col items-end">
+                <span id="studentName" class="text-white font-black text-sm uppercase tracking-tight">...</span>
+                <span id="studentRoll" class="text-[10px] text-slate-500 font-black tracking-widest leading-none mt-1">...</span>
+            </div>
+            <button onclick="API.logout()" class="w-10 h-10 bg-white/5 hover:bg-rose-500/10 hover:text-rose-400 rounded-xl flex items-center justify-center transition-all border border-white/10">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-6 md:p-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Primary Stats -->
+            <div class="lg:col-span-8 space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform"></div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Academic Avg</p>
+                        <h2 id="avgMarks" class="text-5xl font-black text-white glow-cyan mb-2">...</h2>
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+                            <span id="statusText" class="text-xs font-bold text-emerald-400 uppercase tracking-tighter">Rising</span>
+                        </div>
+                    </div>
+                    <div class="glass p-8 rounded-[2.5rem] border border-white/5 group">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Projected Grade</p>
+                        <h2 id="predGrade" class="text-5xl font-black text-secondary glow-indigo">...</h2>
+                        <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mt-2">Target Path Prediction</p>
+                    </div>
+                    <div class="glass p-8 rounded-[2.5rem] border border-white/5">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Assignment Power</p>
+                        <h2 id="assignMarks" class="text-5xl font-black text-white">...</h2>
+                        <div class="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden border border-white/5">
+                            <div id="assignBar" class="h-full bg-white rounded-full transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Evolution Chart -->
+                <div class="glass p-10 rounded-[3rem] border border-white/5">
+                    <div class="flex justify-between items-center mb-10">
+                        <h3 class="text-2xl font-black text-white italic uppercase tracking-tight">Performance <span class="text-primary italic">Evolution</span></h3>
+                        <div class="flex space-x-4">
+                            <div class="flex items-center space-x-2"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="text-[10px] font-black text-slate-500 uppercase">Actual</span></div>
+                            <div class="flex items-center space-x-2"><div class="w-2 h-2 rounded-full border border-primary"></div><span class="text-[10px] font-black text-slate-500 uppercase">Projected</span></div>
+                        </div>
+                    </div>
+                    <div class="h-[400px]">
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Skill Distribution -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="glass p-10 rounded-[3rem]">
+                        <h3 class="text-xl font-black text-white uppercase italic tracking-tight mb-8">Skill <span class="text-secondary italic">Spectrum</span></h3>
+                        <div class="h-64">
+                            <canvas id="skillRadar"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass p-8 rounded-[3rem] flex flex-col justify-center">
+                        <h3 class="text-xl font-black text-white mb-6 uppercase italic tracking-tight">Momentum <span class="text-primary italic">Engine</span></h3>
+                        <div class="relative pt-1 mb-8">
+                             <div class="h-6 bg-black/40 rounded-full border border-white/5 p-1">
+                                 <div id="momentumBar" class="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-1000 shadow-[0_0_20px_rgba(99,102,241,0.3)]"></div>
+                             </div>
+                        </div>
+                        <p id="momentumSummary" class="text-sm font-medium text-slate-400 leading-relaxed italic"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Interactive Engine -->
+            <div class="lg:col-span-4 space-y-8">
+                <!-- Simulation Engine -->
+                <div class="glass p-10 rounded-[3rem] border border-primary/20 bg-primary/5">
+                    <div class="flex items-center space-x-3 mb-8 text-primary">
+                        <i data-lucide="zap" class="fill-primary/20"></i>
+                        <h3 class="text-lg font-black uppercase tracking-[0.15em] italic">Predictor v2.0</h3>
+                    </div>
+                    <div class="space-y-8 mb-10">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Incremental Study Hrs</label>
+                                <span id="studyVal" class="text-primary font-black">+0h</span>
+                            </div>
+                            <input type="range" id="studyRange" min="0" max="15" step="0.5" value="0" class="w-full accent-primary bg-black/40 rounded-full h-2">
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Target Attendance</label>
+                                <span id="attVal" class="text-primary font-black">90%</span>
+                            </div>
+                            <input type="range" id="attRange" min="50" max="100" step="1" value="90" class="w-full accent-primary bg-black/40 rounded-full h-2">
+                        </div>
+                    </div>
+                    <button onclick="runSimulation()" class="w-full bg-primary hover:bg-cyan-400 text-dark font-black py-5 rounded-[2rem] shadow-2xl shadow-primary/20 transition-all transform hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-xs">Simulate Outcome</button>
+                    <div id="simDisplay" class="mt-8 p-6 glass rounded-2xl hidden border-primary/30">
+                        <h4 class="text-xs font-black text-primary uppercase tracking-widest mb-2">Simulation result</h4>
+                        <div id="simText" class="text-xl font-bold text-white">...</div>
+                    </div>
+                </div>
+
+                <!-- Chatbot Widget -->
+                <div class="glass rounded-[3rem] flex flex-col h-[600px] border border-white/5 overflow-hidden">
+                    <div class="p-8 bg-black/40 border-bottom border-white/5 flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center border border-secondary/30">
+                            <i data-lucide="bot" class="text-secondary pointer-events-none"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-white uppercase tracking-widest">AI Academic Tutor</h4>
+                            <span class="text-[10px] text-emerald-400 font-bold uppercase flex items-center"><span class="w-2 h-2 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span> Personal Navigator</span>
+                        </div>
+                    </div>
+                    
+                    <div id="chatHistory" class="flex-1 p-8 overflow-y-auto space-y-6 custom-scrollbar text-sm">
+                        <div class="bg-white/5 p-5 rounded-[2rem] rounded-tl-none border border-white/5 max-w-[90%] font-medium">
+                            Welcome to your Success Portal. I've analyzed your data—ask me for a roadmap or any study tips.
+                        </div>
+                    </div>
+
+                    <form id="chatForm" class="p-6 bg-black/40 flex items-center space-x-3">
+                        <input type="text" id="chatInput" placeholder="Generate my study roadmap..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:ring-2 focus:ring-primary text-xs">
+                        <button class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-dark shadow-xl shadow-primary/20"><i data-lucide="send" class="w-5 h-5 pointer-events-none"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+        const myRollNo = localStorage.getItem('roll_no') || 'STU1000';
+        let studentData = null;
+
+        async function init() {
+            const s = await API.get(`/students/${myRollNo}`);
+            studentData = s;
+            if (!s.name) return API.logout();
+
+            document.getElementById('studentName').innerText = s.name;
+            document.getElementById('studentRoll').innerText = s.roll_no;
+            document.getElementById('avgMarks').innerText = `${s.average.toFixed(1)}%`;
+            document.getElementById('predGrade').innerText = s.predicted_grade.toFixed(1);
+            document.getElementById('assignMarks').innerText = `${s.assignment_score || 0}%`;
+            document.getElementById('assignBar').style.width = `${s.assignment_score || 0}%`;
+            
+            const momRaw = s.momentum || 0;
+            document.getElementById('momentumBar').style.width = `${Math.min(Math.max((momRaw + 10) * 5, 0), 100)}%`;
+            document.getElementById('momentumSummary').innerText = momRaw > 0 ? 
+                `Your performance gradient is positive (+${momRaw.toFixed(2)}). Your academic efficiency is increasing.` : 
+                `Current momentum is negative (${momRaw.toFixed(2)}). Suggesting recalibration of study habits.`;
+
+            document.getElementById('statusText').innerText = s.status === 'Pass' ? 'Operational' : 'Risk Detected';
+            document.getElementById('statusText').classList.toggle('text-rose-400', s.status !== 'Pass');
+
+            initCharts(s);
+        }
+
+        function initCharts(s) {
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.font.family = 'Outfit';
+
+            // Evolution Chart
+            const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
+            const g = evolutionCtx.createLinearGradient(0,0,0,400); g.addColorStop(0, 'rgba(6, 182, 212, 0.4)'); g.addColorStop(1, 'rgba(6, 182, 212, 0)');
+            new Chart(evolutionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Next Target'],
+                    datasets: [
+                        { label: 'Academic Curve', data: [s.sem1_marks, s.sem2_marks, s.sem3_marks, s.sem4_marks, s.predicted_grade], borderColor: '#06b6d4', borderWidth: 4, pointRadius: 6, fill: true, backgroundColor: g, tension: 0.4, pointBackgroundColor: '#06b6d4', pointBorderColor: 'rgba(255,255,255,0.2)' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { y: { min: 0, max: 100, border: { display: false }, grid: { color: 'rgba(255,255,255,0.03)' } }, x: { grid: { display: false } } } }
+            });
+
+            // Radar Chart for Skill Spectrum
+            const radarCtx = document.getElementById('skillRadar').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Avg Marks', 'Attendance', 'Motivation', 'Momentum', 'Assignments'],
+                    datasets: [{
+                        label: 'Capacity',
+                        data: [s.average, s.attendance, s.motivation === 'High' ? 100 : (s.motivation === 'Medium' ? 70 : 40), (s.momentum + 10) * 5, s.assignment_score],
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)', borderColor: '#6366f1', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#6366f1'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.05)' }, angleLines: { color: 'rgba(255,255,255,0.05)' }, pointLabels: { font: { size: 10, weight: '900' }, color: '#475569' } } } }
+            });
+        }
+
+        async function runSimulation() {
+            const hrs = document.getElementById('studyRange').value;
+            const att = document.getElementById('attRange').value;
+            const res = await API.post('/predict/what-if', { roll_no: myRollNo, target_study_hours: parseFloat(hrs), target_attendance: parseFloat(att) });
+            
+            const display = document.getElementById('simDisplay');
+            const text = document.getElementById('simText');
+            display.classList.remove('hidden');
+            text.innerHTML = `Predicted Grade: <span class="text-primary font-black">${res.predicted_grade.toFixed(1)}</span> <span class="text-xs text-slate-500 italic ml-2">(${res.impact} Impact)</span>`;
+            
+            gsap.from(display, { duration: 0.5, y: 10, opacity: 0 }); // If GSAP not loaded, no big deal
+        }
+
+        document.getElementById('studyRange').oninput = (e) => document.getElementById('studyVal').innerText = `+${e.target.value}h`;
+        document.getElementById('attRange').oninput = (e) => document.getElementById('attVal').innerText = `${e.target.value}%`;
+
+        document.getElementById('chatForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inp = document.getElementById('chatInput'); if (!inp.value) return;
+            const hist = document.getElementById('chatHistory');
+            
+            hist.innerHTML += `<div class="bg-primary/20 p-5 rounded-[2rem] rounded-tr-none border border-primary/20 max-w-[90%] ml-auto font-medium text-white">${inp.value}</div>`;
+            const q = inp.value; inp.value = '';
+            
+            const res = await API.post('/chatbot', { query: q, roll_no: myRollNo });
+            hist.innerHTML += `<div class="bg-secondary/10 p-5 rounded-[2rem] rounded-tl-none border border-secondary/20 max-w-[90%] font-bold text-secondary italic">${res.response}</div>`;
+            hist.scrollTop = hist.scrollHeight;
+        };
+
+        init();
+    </script>
+</body>
+</html>

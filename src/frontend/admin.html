@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | EduMitra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        dark: '#0f172a',
+                        surface: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-dark text-slate-200 min-h-screen font-sans">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-surface h-screen sticky top-0 border-r border-slate-700 hidden md:flex flex-col">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i data-lucide="graduation-cap" class="mr-2 text-primary"></i> EduMitra
+                </h2>
+            </div>
+            <nav class="flex-1 px-4 space-y-2 mt-4">
+                <a href="#" class="flex items-center px-4 py-3 bg-primary text-white rounded-lg transition-all">
+                    <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i> Dashboard
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 hover:bg-slate-700 rounded-lg transition-all text-slate-400 hover:text-white">
+                    <i data-lucide="users" class="mr-3 w-5 h-5"></i> Students
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 hover:bg-slate-700 rounded-lg transition-all text-slate-400 hover:text-white">
+                    <i data-lucide="bell" class="mr-3 w-5 h-5"></i> Alerts
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-700">
+                <button onclick="API.logout()" class="flex items-center w-full px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
+                    <i data-lucide="log-out" class="mr-3 w-5 h-5"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Monitoring Dashboard</h1>
+                    <p class="text-slate-400">Track and predict student performance in real-time.</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4"></i>
+                        <input type="text" id="searchInput" placeholder="Search Name or USN..." 
+                            class="pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm w-64 transition-all">
+                    </div>
+                    <button class="bg-primary hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg shadow-indigo-500/20">
+                        Add New Student
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-surface p-6 rounded-xl border border-slate-700">
+                    <p class="text-slate-400 text-sm mb-1">Total Students</p>
+                    <h3 class="text-2xl font-bold text-white">1,248</h3>
+                </div>
+                <div class="bg-surface p-6 rounded-xl border border-slate-700 border-l-4 border-l-red-500">
+                    <p class="text-slate-400 text-sm mb-1">At-Risk</p>
+                    <h3 class="text-2xl font-bold text-red-400">42</h3>
+                </div>
+                <div class="bg-surface p-6 rounded-xl border border-slate-700 border-l-4 border-l-yellow-500">
+                    <p class="text-slate-400 text-sm mb-1">Average</p>
+                    <h3 class="text-2xl font-bold text-yellow-400">512</h3>
+                </div>
+                <div class="bg-surface p-6 rounded-xl border border-slate-700 border-l-4 border-l-green-500">
+                    <p class="text-slate-400 text-sm mb-1">High-Performing</p>
+                    <h3 class="text-2xl font-bold text-green-400">694</h3>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="bg-surface rounded-xl border border-slate-700 overflow-hidden">
+                <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                    <div class="flex space-x-4">
+                        <select id="filterMarks" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1 outline-none text-slate-300">
+                            <option value="">All Marks</option>
+                            <option value="above_average">Above Average</option>
+                            <option value="average">Average</option>
+                            <option value="poor">Poor</option>
+                        </select>
+                        <select id="sortOrder" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1 outline-none text-slate-300">
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-800/30 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Student Name</th>
+                                <th class="px-6 py-4 font-medium">Roll No (USN)</th>
+                                <th class="px-6 py-4 font-medium">Avg Marks</th>
+                                <th class="px-6 py-4 font-medium">Momentum</th>
+                                <th class="px-6 py-4 font-medium">Risk Level</th>
+                                <th class="px-6 py-4 font-medium">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="divide-y divide-slate-700">
+                            <!-- Data injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+
+        async function loadStudents() {
+            const search = document.getElementById('searchInput').value;
+            const filter_type = document.getElementById('filterMarks').value;
+            const sort_by = document.getElementById('sortOrder').value;
+
+            const students = await API.get('/students', { search, filter_type, sort_by });
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            students.forEach(student => {
+                const momentumColor = student.momentum > 0 ? 'text-green-400' : 'text-red-400';
+                const riskBadge = student.risk_level === 'High Risk' ? 'bg-red-400/10 text-red-400 border-red-400/20' : 
+                                  (student.risk_level === 'Average' ? 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' : 
+                                   'bg-green-400/10 text-green-400 border-green-400/20');
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition-all">
+                        <td class="px-6 py-4">
+                            <div class="font-semibold text-white">${student.name}</div>
+                        </td>
+                        <td class="px-6 py-4 text-slate-400">${student.roll_no}</td>
+                        <td class="px-6 py-4 font-medium">${student.average}%</td>
+                        <td class="px-6 py-4 font-bold ${momentumColor}">${student.momentum > 0 ? '↑' : '↓'} ${Math.abs(student.momentum).toFixed(1)}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold border ${riskBadge}">${student.risk_level}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <button class="text-primary hover:text-indigo-400 mr-3 text-sm font-medium">Explain AI</button>
+                            <button class="text-slate-500 hover:text-white text-sm font-medium">Edit</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', loadStudents);
+        document.getElementById('filterMarks').addEventListener('change', loadStudents);
+        document.getElementById('sortOrder').addEventListener('change', loadStudents);
+
+        // Initial load
+        loadStudents();
+    </script>
+</body>
+</html>

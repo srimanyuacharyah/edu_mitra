@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Suite | EduMitra Platinum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: { primary: '#6366f1', dark: '#020617', card: '#0f172a' }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .hero-gradient { background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 60%); }
+        .pulse-red { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .modal { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0; pointer-events: none; transform: scale(0.95); }
+        .modal.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+    </style>
+</head>
+<body class="bg-dark text-slate-200 min-h-screen hero-gradient">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 bg-card h-screen sticky top-0 border-r border-white/5 flex flex-col items-center lg:items-stretch py-8">
+            <div class="px-6 mb-12 flex items-center space-x-3">
+                <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+                    <i data-lucide="zap" class="text-primary w-6 h-6 fill-primary/20 pointer-events-none"></i>
+                </div>
+                <h1 class="hidden lg:block text-2xl font-black italic tracking-tighter uppercase leading-none">Edu<span class="text-primary italic">Mitra</span></h1>
+            </div>
+            <nav class="flex-1 px-4 space-y-2">
+                <a href="#" class="flex items-center space-x-4 px-4 py-3 bg-primary/10 text-primary border-r-4 border-primary rounded-l-xl group">
+                    <i data-lucide="layout-dashboard" class="group-hover:scale-110 transition-transform"></i>
+                    <span class="hidden lg:block font-bold">Admin Portal</span>
+                </a>
+                <a href="#" class="flex items-center space-x-4 px-4 py-3 text-slate-500 hover:bg-white/5 hover:text-white rounded-xl transition-all group">
+                    <i data-lucide="users"></i>
+                    <span class="hidden lg:block">Student Matrix</span>
+                </a>
+                <a href="#" class="flex items-center space-x-4 px-4 py-3 text-slate-500 hover:bg-white/5 hover:text-white rounded-xl transition-all group">
+                    <i data-lucide="alert-triangle"></i>
+                    <span class="hidden lg:block">Risk Alerts</span>
+                </a>
+            </nav>
+            <div class="px-4">
+                <button onclick="API.logout()" class="w-full flex items-center space-x-4 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-xl transition-all">
+                    <i data-lucide="log-out"></i>
+                    <span class="hidden lg:block font-medium">Exit Suite</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 lg:p-12 overflow-y-auto max-h-screen custom-scrollbar">
+            <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+                <div>
+                    <h2 class="text-4xl font-black text-white mb-2 tracking-tight uppercase italic">Student Management <span class="text-primary italic">Matrix</span></h2>
+                    <p class="text-slate-400">Total control over academic data, predictions, and interventions.</p>
+                </div>
+                <button onclick="openModal()" class="bg-primary hover:bg-indigo-400 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1">
+                    <i data-lucide="plus" class="mr-2"></i> Add New Student
+                </button>
+            </header>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                <div class="glass p-6 rounded-[2rem] border-l-4 border-emerald-500">
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Distinction</p>
+                    <h3 id="countDistinction" class="text-3xl font-black text-white">0</h3>
+                </div>
+                <div class="glass p-6 rounded-[2rem] border-l-4 border-amber-500">
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Average</p>
+                    <h3 id="countAverage" class="text-3xl font-black text-white">0</h3>
+                </div>
+                <div class="glass p-6 rounded-[2rem] border-l-4 border-rose-500">
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">At Risk</p>
+                    <h3 id="countRisk" class="text-3xl font-black text-white text-rose-400">0</h3>
+                </div>
+                <div class="glass p-6 rounded-[2rem] border-l-4 border-primary">
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Total Enrollment</p>
+                    <h3 id="countTotal" class="text-3xl font-black text-white">0</h3>
+                </div>
+            </div>
+
+            <!-- Table Actions -->
+            <div class="glass p-6 rounded-[2.5rem] mb-8 flex flex-wrap gap-4 items-center">
+                <div class="relative flex-1 min-w-[300px]">
+                    <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5"></i>
+                    <input type="text" id="searchInput" placeholder="Search by Student Name or USN..." 
+                           class="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-6 py-4 outline-none focus:ring-2 focus:ring-primary text-white transition-all placeholder:text-slate-600">
+                </div>
+                <select id="filterMarks" class="bg-black/40 border border-white/5 text-slate-300 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-primary">
+                    <option value="">All Categories</option>
+                    <option value="above_average">Above Average (>70%)</option>
+                    <option value="average">Avg Performance (40-70%)</option>
+                    <option value="poor">Action Needed (<40%)</option>
+                </select>
+                <select id="sortOrder" class="bg-black/40 border border-white/5 text-slate-300 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-primary">
+                    <option value="name_asc">A - Z</option>
+                    <option value="name_desc">Z - A</option>
+                </select>
+            </div>
+
+            <!-- Student Table -->
+            <div class="glass rounded-[3rem] overflow-hidden border border-white/5">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black">
+                            <tr>
+                                <th class="px-10 py-8">Portfolio</th>
+                                <th class="px-10 py-8">Academics</th>
+                                <th class="px-10 py-8">ML Status</th>
+                                <th class="px-10 py-8">Outcome</th>
+                                <th class="px-10 py-8 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="divide-y divide-white/5">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Add/Edit -->
+    <div id="studentModal" class="modal fixed inset-0 z-[100] flex items-center justify-center p-6 bg-dark/80 backdrop-blur-md">
+        <div class="max-w-4xl w-full glass p-10 rounded-[40px] shadow-2xl border border-white/10 relative overflow-y-auto max-h-[90vh] custom-scrollbar">
+            <button onclick="closeModal()" class="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <h2 id="modalTitle" class="text-3xl font-black text-white mb-8 uppercase italic tracking-tight">Add New <span class="text-primary">Portfolio</span></h2>
+            
+            <form id="studentForm" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Student Name</label>
+                        <input type="text" id="stu_name" required class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:ring-2 focus:ring-primary transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">USN / Roll No</label>
+                        <input type="text" id="stu_roll" required class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:ring-2 focus:ring-primary transition-all">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Study Hrs</label>
+                            <input type="number" id="stu_study" value="10" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Attendance %</label>
+                            <input type="number" id="stu_attendance" value="85" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Sem 1 Marks</label>
+                            <input type="number" id="stu_s1" value="70" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Sem 2 Marks</label>
+                            <input type="number" id="stu_s2" value="70" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Sem 3 Marks</label>
+                            <input type="number" id="stu_s3" value="70" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Sem 4 Marks</label>
+                            <input type="number" id="stu_s4" value="70" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Assignment Score</label>
+                        <input type="number" id="stu_assignment" value="75" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:ring-2 focus:ring-primary transition-all">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Motivation</label>
+                            <select id="stu_motivation" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Learning Style</label>
+                            <select id="stu_style" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                                <option value="Visual" selected>Visual</option>
+                                <option value="Auditory">Auditory</option>
+                                <option value="Kinesthetic">Kinesthetic</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 pt-6">
+                    <button type="submit" class="w-full bg-primary hover:bg-indigo-400 text-white font-black py-5 rounded-[2rem] shadow-2xl shadow-primary/30 uppercase tracking-[0.2em] text-sm transition-all transform active:scale-95">
+                        Commit Data Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+        let isEdit = false;
+
+        function openModal(editData = null) {
+            isEdit = !!editData;
+            document.getElementById('modalTitle').innerHTML = isEdit ? 'Edit <span class="text-primary">Portfolio</span>' : 'Add New <span class="text-primary">Portfolio</span>';
+            const modal = document.getElementById('studentModal');
+            modal.classList.add('active');
+            
+            if (editData) {
+                document.getElementById('stu_name').value = editData.name;
+                document.getElementById('stu_roll').value = editData.roll_no;
+                document.getElementById('stu_roll').disabled = true; // RollNo is fixed during edit
+                document.getElementById('stu_study').value = editData.study_hours;
+                document.getElementById('stu_attendance').value = editData.attendance;
+                document.getElementById('stu_s1').value = editData.sem1_marks;
+                document.getElementById('stu_s2').value = editData.sem2_marks;
+                document.getElementById('stu_s3').value = editData.sem3_marks;
+                document.getElementById('stu_s4').value = editData.sem4_marks;
+                document.getElementById('stu_assignment').value = editData.assignment_score || 0;
+            } else {
+                document.getElementById('studentForm').reset();
+                document.getElementById('stu_roll').disabled = false;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('studentModal').classList.remove('active');
+        }
+
+        async function load() {
+            const students = await API.get('/students', {
+                search: document.getElementById('searchInput').value,
+                filter_type: document.getElementById('filterMarks').value,
+                sort_by: document.getElementById('sortOrder').value
+            });
+            
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+            
+            let highCount = 0, avgCount = 0, lowCount = 0;
+
+            students.forEach(s => {
+                if(s.risk_level === 'High Risk') highCount++;
+                else if(s.risk_level === 'Average') avgCount++;
+                else lowCount++;
+
+                const momentumColor = s.momentum > 0 ? 'text-emerald-400' : 'text-rose-400';
+                const statusClass = s.risk_level === 'High Risk' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 pulse-red' : 
+                                   (s.risk_level === 'Average' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                                   'bg-emerald-500/10 text-emerald-400 border-emerald-500/20');
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-white/[0.02] transition-colors group">
+                        <td class="px-10 py-8">
+                            <div class="font-black text-white group-hover:text-primary transition-colors text-lg italic tracking-tight">${s.name}</div>
+                            <div class="text-[10px] text-slate-600 uppercase font-black mt-1 tracking-widest">${s.roll_no}</div>
+                        </td>
+                        <td class="px-10 py-8">
+                            <div class="font-black text-white text-xl">${s.average ? s.average.toFixed(1) : 0}%</div>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <span class="text-[10px] font-black uppercase text-slate-500">MOMENTUM</span>
+                                <span class="text-xs font-black ${momentumColor}">${s.momentum > 0 ? '↗' : '↘'} ${Math.abs(s.momentum).toFixed(2)}</span>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8">
+                            <span class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${statusClass}">${s.risk_level}</span>
+                        </td>
+                        <td class="px-10 py-8">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 rounded-full ${s.status === 'Pass' ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
+                                <span class="font-black text-sm uppercase tracking-widest ${s.status === 'Pass' ? 'text-emerald-400' : 'text-rose-400'}">${s.status}</span>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8 text-right">
+                            <div class="flex items-center justify-end space-x-3">
+                                <button onclick="editStudent('${s.roll_no}')" class="w-10 h-10 glass rounded-xl flex items-center justify-center text-slate-500 hover:text-white hover:border-primary/50 transition-all">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteStudent('${s.roll_no}')" class="w-10 h-10 glass rounded-xl flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 transition-all">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('countDistinction').innerText = lowCount;
+            document.getElementById('countAverage').innerText = avgCount;
+            document.getElementById('countRisk').innerText = highCount;
+            document.getElementById('countTotal').innerText = students.length;
+            lucide.createIcons();
+        }
+
+        async function editStudent(roll) {
+            const s = await API.get(`/students/${roll}`);
+            openModal(s);
+        }
+
+        async function deleteStudent(roll) {
+            if (confirm(`Safety Warning: Are you sure you want to PERMANENTLY delete student ${roll}? This action cannot be undone.`)) {
+                await API.del(`/students/${roll}`);
+                load();
+            }
+        }
+
+        document.getElementById('studentForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('stu_name').value,
+                roll_no: document.getElementById('stu_roll').value,
+                study_hours: parseFloat(document.getElementById('stu_study').value),
+                attendance: parseFloat(document.getElementById('stu_attendance').value),
+                motivation: document.getElementById('stu_motivation').value,
+                learning_style: document.getElementById('stu_style').value,
+                stress_level: 5.0, // Default for now
+                sem1_marks: parseFloat(document.getElementById('stu_s1').value),
+                sem2_marks: parseFloat(document.getElementById('stu_s2').value),
+                sem3_marks: parseFloat(document.getElementById('stu_s3').value),
+                sem4_marks: parseFloat(document.getElementById('stu_s4').value),
+                assignment_score: parseFloat(document.getElementById('stu_assignment').value)
+            };
+
+            const res = await API.post('/students', payload);
+            if (res.message) {
+                closeModal();
+                load();
+            } else {
+                alert('Commit failed: ' + (res.detail || 'check inputs'));
+            }
+        };
+
+        ['searchInput', 'filterMarks', 'sortOrder'].forEach(id => {
+            document.getElementById(id).oninput = load;
+        });
+        load();
+    </script>
+</body>
+</html>

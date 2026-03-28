@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Access | EduMitra Platinum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: { primary: '#6366f1', secondary: '#06b6d4', dark: '#020617' }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .hero-gradient { background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 60%), radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.1), transparent 60%); }
+        .role-btn { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .role-btn.active { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: white; }
+    </style>
+</head>
+<body class="bg-dark text-slate-300 font-sans min-h-screen flex items-center justify-center p-6 hero-gradient relative overflow-hidden">
+    
+    <div class="absolute -top-48 -left-48 w-96 h-96 bg-primary/10 blur-[120px] rounded-full"></div>
+    <div class="absolute -bottom-48 -right-48 w-96 h-96 bg-secondary/10 blur-[120px] rounded-full"></div>
+
+    <div class="max-w-md w-full glass p-10 rounded-[40px] shadow-2xl relative z-10 border border-white/5">
+        <div class="text-center mb-10">
+            <div class="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white/10">
+                <i data-lucide="shield-check" id="roleIcon" class="text-primary w-8 h-8 pointer-events-none transition-colors duration-500"></i>
+            </div>
+            <h1 class="text-3xl font-black text-white mb-2 tracking-tight">System Gateway</h1>
+            <p class="text-slate-400">Select your portal to continue.</p>
+        </div>
+
+        <!-- Role Toggle -->
+        <div class="grid grid-cols-2 gap-4 mb-10 p-1.5 bg-black/40 rounded-2xl border border-white/5">
+            <button onclick="setRole('Student')" id="btnStudent" class="role-btn active py-3 rounded-xl font-bold flex items-center justify-center space-x-2 border border-transparent">
+                <i data-lucide="graduation-cap" class="w-4 h-4 pointer-events-none"></i>
+                <span>User</span>
+            </button>
+            <button onclick="setRole('Teacher')" id="btnTeacher" class="role-btn py-3 rounded-xl font-bold flex items-center justify-center space-x-2 border border-transparent">
+                <i data-lucide="briefcase" class="w-4 h-4 pointer-events-none"></i>
+                <span>Admin</span>
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form id="loginForm" class="space-y-6">
+            <div id="emailGroup" class="hidden">
+                <label class="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-widest px-1">Institutional Email</label>
+                <div class="relative">
+                    <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none"></i>
+                    <input type="email" id="email" class="w-full bg-white/5 border border-white/10 text-white rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-slate-600" placeholder="admin@edu.com">
+                </div>
+            </div>
+            
+            <div id="rollNoGroup">
+                <label class="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-widest px-1">Enter USN / Roll No</label>
+                <div class="relative">
+                    <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none"></i>
+                    <input type="text" id="roll_no" class="w-full bg-white/5 border border-white/10 text-white rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-secondary outline-none transition-all placeholder:text-slate-600" placeholder="STU1000">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-widest px-1">Password</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none"></i>
+                    <input type="password" id="password" required class="w-full bg-white/5 border border-white/10 text-white rounded-2xl pl-12 pr-4 py-4 focus:ring-2 outline-none transition-all placeholder:text-slate-600" placeholder="••••••••">
+                </div>
+            </div>
+            
+            <button type="submit" id="submitBtn" class="w-full bg-secondary hover:bg-cyan-400 text-dark font-black py-5 rounded-2xl shadow-xl shadow-secondary/20 transition-all transform hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-sm">
+                Unlock Portal
+            </button>
+        </form>
+
+        <div id="signupLink" class="mt-8 text-center text-sm hidden">
+            <span class="text-slate-500">New administrator?</span>
+            <a href="signup-teacher.html" class="text-primary font-bold hover:underline ml-1">Create Account</a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+        let currentRole = 'Student';
+
+        function setRole(role) {
+            currentRole = role;
+            const isStudent = role === 'Student';
+            
+            // UI Updates
+            document.getElementById('btnStudent').classList.toggle('active', isStudent);
+            document.getElementById('btnTeacher').classList.toggle('active', !isStudent);
+            document.getElementById('emailGroup').classList.toggle('hidden', isStudent);
+            document.getElementById('rollNoGroup').classList.toggle('hidden', !isStudent);
+            document.getElementById('signupLink').classList.toggle('hidden', isStudent);
+            
+            const icon = document.getElementById('roleIcon');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (isStudent) {
+                icon.className = 'text-secondary w-8 h-8 pointer-events-none transition-colors duration-500';
+                submitBtn.className = 'w-full bg-secondary hover:bg-cyan-400 text-dark font-black py-5 rounded-2xl shadow-xl shadow-secondary/20 transition-all transform hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-sm';
+                submitBtn.innerText = 'Unlock Portal';
+            } else {
+                icon.className = 'text-primary w-8 h-8 pointer-events-none transition-colors duration-500';
+                submitBtn.className = 'w-full bg-primary hover:bg-indigo-400 text-white font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-sm';
+                submitBtn.innerText = 'Admin Monitoring';
+            }
+            lucide.createIcons();
+        }
+
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            
+            if (currentRole === 'Teacher') {
+                const email = document.getElementById('email').value;
+                const res = await API.post('/login/teacher', { email, password, full_name: '', role: 'Teacher' });
+                if (res.access_token) {
+                    localStorage.setItem('token', res.access_token);
+                    localStorage.setItem('role', 'Teacher');
+                    window.location.href = 'teacher-dashboard.html';
+                } else {
+                    alert('Admin Login failed: ' + (res.detail || 'Check credentials'));
+                }
+            } else {
+                const roll_no = document.getElementById('roll_no').value;
+                const res = await API.postStudentLogin(roll_no, password);
+                if (res.access_token) {
+                    localStorage.setItem('token', res.access_token);
+                    localStorage.setItem('role', 'Student');
+                    localStorage.setItem('roll_no', roll_no);
+                    window.location.href = 'student-dashboard.html';
+                } else {
+                    alert('Student Portal failed: ' + (res.detail || 'Unauthorized Roll No'));
+                }
+            }
+        };
+    </script>
+</body>
+</html>

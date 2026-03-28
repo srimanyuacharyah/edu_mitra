@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "C:\Users\Lenovo\edu_mitra\run_wrapper.py", line 7, in <module>
+    runpy.run_path('src/model_training.py', run_name='__main__')
+  File "C:\Users\Lenovo\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 289, in run_path
+    return _run_module_code(code, init_globals, run_name,
+  File "C:\Users\Lenovo\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 96, in _run_module_code
+    _run_code(code, mod_globals, init_globals,
+  File "C:\Users\Lenovo\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "src/model_training.py", line 103, in <module>
+    main()
+  File "src/model_training.py", line 73, in main
+    cat_feature_names = preprocessor.named_transformers_['cat'].get_feature_names_out(categorical_features)
+  File "C:\Users\Lenovo\AppData\Local\Programs\Python\Python310\lib\site-packages\sklearn\preprocessing\_encoders.py", line 1226, in get_feature_names_out
+    check_is_fitted(self)
+  File "C:\Users\Lenovo\AppData\Local\Programs\Python\Python310\lib\site-packages\sklearn\utils\validation.py", line 1754, in check_is_fitted
+    raise NotFittedError(msg % {"name": type(estimator).__name__})
+sklearn.exceptions.NotFittedError: This OneHotEncoder instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.
